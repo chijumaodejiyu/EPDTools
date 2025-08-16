@@ -5,19 +5,23 @@ class ImgProcesser:
     def __init__(self):
         pass
 
-    def modulate_brw(self, img, need_preview=False):
+    def modulate_brw(self, img, need_preview=False, dither_mode="bw"):
         """Process dithered image for EPD display
         
         Args:
             img: dithered BGR image (only contains specific colors)
             need_preview: whether to show preview
+            dither_mode: "bw" for black-white, "rw" for red-white, "rbw" for red-black-white
             
         Returns:
             tuple: (bw_data, rw_data, width, height)
         """
         # Auto-rotate if portrait orientation
+        original_shape = img.shape[:2]
         if img.shape[1] < img.shape[0]:  # width < height
+            print(f"Rotating portrait image (original: {img.shape[1]}x{img.shape[0]})")
             img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
+            print(f"After rotation: {img.shape[1]}x{img.shape[0]}")
             
         # Crop to maintain aspect ratio
         h, w = img.shape[:2]
@@ -25,14 +29,17 @@ class ImgProcesser:
         current_ratio = img.shape[1] / img.shape[0]
         
         if abs(current_ratio - target_ratio) > 0.01:  # Only crop if ratio differs significantly
+            print(f"Adjusting image ratio from {current_ratio:.2f} to target {target_ratio:.2f}")
             if current_ratio > target_ratio:  # Too wide
                 new_width = int(h * target_ratio)
                 x = (w - new_width) // 2
                 img = img[:, x:x+new_width]
+                print(f"Cropped width from {w} to {new_width}")
             else:  # Too tall
                 new_height = int(w / target_ratio)
                 y = (h - new_height) // 2
                 img = img[y:y+new_height, :]
+                print(f"Cropped height from {h} to {new_height}")
                 
         # Ensure height is multiple of 8
         if img.shape[0] % 8 != 0:
@@ -57,7 +64,12 @@ class ImgProcesser:
         if need_preview:
             preview = bw_bin.copy()
             preview = cv2.cvtColor(preview, cv2.COLOR_GRAY2BGR)
-            preview[rw_bin == 255] = (0, 0, 255)  # Mark red as blue in preview
+            if dither_mode == "bw":
+                # For black-white mode, show pure grayscale
+                pass
+            else:
+                # For red-white or red-black-white modes, show red areas
+                preview[rw_bin == 255] = (0, 0, 255)  # Mark red as blue in preview
             cv2.imshow('Preview', preview)
             cv2.waitKey(0)
             cv2.destroyAllWindows()

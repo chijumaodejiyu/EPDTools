@@ -20,7 +20,7 @@ def main():
     print("EPD Tools - Image Processing Pipeline")
     
     # 1. Set default parameters
-    image_path = sys.argv[1] if len(sys.argv) > 1 else "/test/input.jpg"
+    image_path = sys.argv[1] if len(sys.argv) > 1 else "test\input.jpg"
     com_port = sys.argv[2] if len(sys.argv) > 2 else "COM3"
     
     # Create output directory if not exists

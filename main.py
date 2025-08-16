@@ -17,6 +17,7 @@ TEXTS = {
         "lang_error": "Invalid input, using English",
         "enter_image": "Enter image path (default: test/input.jpg): ",
         "enter_port": "Enter COM port (default: COM3): ",
+        "enter_resolution": "Enter target resolution WxH (default: 250x122): ",
         "select_dither": "Select dithering method [1] Black & White [2] Red & White [3] Red-Black-White (default: 1): ",
         "dither_error": "Invalid selection, using Black & White",
         "processing": "\nProcessing image...",
@@ -28,6 +29,7 @@ TEXTS = {
         "lang_error": "输入无效，默认使用英文",
         "enter_image": "输入图片路径 (默认: test/input.jpg): ",
         "enter_port": "输入COM端口 (默认: COM3): ",
+        "enter_resolution": "输入目标分辨率 WxH (默认: 250x122): ",
         "select_dither": "选择抖动方式 [1] 黑白 [2] 红白 [3] 红黑白 (默认: 1): ",
         "dither_error": "选择无效，使用黑白抖动",
         "processing": "\n正在处理图片...",
@@ -58,6 +60,15 @@ def main():
     image_path = input(TEXTS[lang]["enter_image"]) or os.path.join("test", "input.jpg")
     com_port = input(TEXTS[lang]["enter_port"]) or "COM3"
     
+    # Resolution input
+    resolution = input(TEXTS[lang]["enter_resolution"]) or "250x122"
+    try:
+        width, height = map(int, resolution.split('x'))
+    except:
+        width, height = 250, 122
+        print(("Invalid resolution format, using default 250x122" if lang == "en" 
+              else "分辨率格式无效，使用默认值250x122"))
+    
     # Dithering method selection
     # Map user choice to actual method names in Dithering class
     dither_methods = {
@@ -84,6 +95,9 @@ def main():
         img = cv2.imread(image_path)
         if img is None:
             raise ValueError(f"Could not load image from {image_path}")
+            
+        # Resize image to target resolution
+        img = cv2.resize(img, (width, height), interpolation=cv2.INTER_AREA)
             
     except Exception as e:
         print(f"Error loading image: {e}")

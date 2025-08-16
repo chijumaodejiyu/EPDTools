@@ -15,6 +15,25 @@ class ImgProcesser:
         Returns:
             tuple: (bw_data, rw_data, width, height)
         """
+        # Auto-rotate if portrait orientation
+        if img.shape[1] < img.shape[0]:  # width < height
+            img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
+            
+        # Crop to maintain aspect ratio
+        h, w = img.shape[:2]
+        target_ratio = w / h
+        current_ratio = img.shape[1] / img.shape[0]
+        
+        if abs(current_ratio - target_ratio) > 0.01:  # Only crop if ratio differs significantly
+            if current_ratio > target_ratio:  # Too wide
+                new_width = int(h * target_ratio)
+                x = (w - new_width) // 2
+                img = img[:, x:x+new_width]
+            else:  # Too tall
+                new_height = int(w / target_ratio)
+                y = (h - new_height) // 2
+                img = img[y:y+new_height, :]
+                
         # Ensure height is multiple of 8
         if img.shape[0] % 8 != 0:
             pad = 8 - (img.shape[0] % 8)
